@@ -280,7 +280,7 @@ elif navigation_tab == "5. Pan-Indian Calorie Tracker":
         for idx, meal in enumerate(st.session_state.calories_diary):
             col_item, col_val = st.columns([3, 1])
             with col_item:
-                st.markdown(f"%EF%B8%8F **{meal['name']}**")
+                st.markdown(f"🍽️ **{meal['name']}**")
                 st.caption(f"Cuisine: {meal['cuisine']} | Serving Size: {meal['portion']} | Prep: {meal['oil_level']}")
             with col_val:
                 st.markdown(f"**`+{meal['calories']} kcal`**")
