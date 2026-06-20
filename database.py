@@ -43,6 +43,8 @@ def fetch_targeted_workouts(segment: str):
             .eq("target_segment", segment.lower())\
             .execute()
         return response.data
+    
     except Exception as e:
-        print(f"Error fetching workouts: {e}")
-        return []
+    import streamlit as st
+    st.error(f"Supabase error: {e}")
+    return []
