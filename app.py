@@ -225,20 +225,63 @@ elif navigation_tab == "4. Somatotype Body Type Finder":
         """)
 
 # MODULE 5: REGIONAL CALORIC DIETARY LEDGER
+# MODULE 5: REGIONAL CALORIC DIETARY LEDGER
 elif navigation_tab == "5. Pan-Indian Calorie Tracker":
     st.header("🍛 Culturally Adapted Caloric Diary Engine")
-    cuisine = st.radio("Select Active Domestic Culinary Partition Environment", ["South Indian", "North Indian"], horizontal=True)
     
+    # Initialize the ongoing diary memory state if it doesn't exist yet
+    if "calories_diary" not in st.session_state:
+        st.session_state.calories_diary = []
+
+    cuisine = st.radio("Select Active Domestic Culinary Partition Environment", ["South Indian", "North Indian"], horizontal=True)
     foods = db.fetch_indian_foods(cuisine)
+    
     if foods:
-        names = [f['food_name'] for f in foods]
-        choice = st.selectbox("Select Everyday Staple Dish", names)
-        matched = next(f for f in foods if f['food_name'] == choice)
+        col_select, col_oil = st.columns([1.5, 1])
+        with col_select:
+            # Fixed column mappings matching your exact Supabase SQL schema definitions
+            names = [f['food_name'] for f in foods]
+            choice = st.selectbox("Select Everyday Staple Dish", names)
+            matched = next(f for f in foods if f['food_name'] == choice)
+            
+        with col_oil:
+            oil = st.select_slider("Preparation Oil Level Factor", ["Low Oil Baseline", "Standard Standard Prep", "Extra Ghee/Butter Addition"], value="Standard Standard Prep")
+            mod = 0.85 if "Low" in oil else (1.25 if "Extra" in oil else 1.0)
+            
+        calories_calculated = int(matched['base_calories_per_serving'] * mod)
         
-        oil = st.select_slider("Preparation Oil Level Factor Coefficient", ["Low Oil Baseline", "Standard Standard Prep", "Extra Ghee/Butter Addition"])
-        mod = 0.85 if "Low" in oil else (1.25 if "Extra" in oil else 1.0)
-        
-        calories = int(matched['base_calories_per_serving'] * mod)
-        st.success(f"🔥 Total Metric Logged: **{calories} kcal** per serving portion size ({matched['standard_portion']})")
+        if st.button("➕ Log Food Entry to Daily Journal", type="primary"):
+            st.session_state.calories_diary.append({
+                "name": matched['food_name'],
+                "cuisine": cuisine,
+                "portion": matched['standard_portion'],
+                "oil_level": oil.split()[0], 
+                "calories": calories_calculated
+            })
+            st.toast(f"Logged {matched['food_name']} successfully!")
     else:
-        st.warning("Ensure seed rows are populated inside your Supabase Cloud Database instance schema.")
+        st.warning("Empty records returned. Ensure seed rows are populated inside your public.indian_food_db schema table instance.")
+
+    # TRACKER DIARY DISPLAYER
+    st.write("---")
+    st.subheader("📅 Today's Caloric Intake Journal")
+    
+    if not st.session_state.calories_diary:
+        st.info("Your food log is currently empty. Select items above to start adding to your daily budget tracker.")
+    else:
+        total_logged_calories = sum(item['calories'] for item in st.session_state.calories_diary)
+        st.metric(label="🔥 Total Cumulative Calories Logged", value=f"{total_logged_calories} kcal")
+        
+        if st.button("🗑️ Clear Daily Diary Journal Log"):
+            st.session_state.calories_diary = []
+            st.rerun()
+            
+        st.write("")
+        for idx, meal in enumerate(st.session_state.calories_diary):
+            col_item, col_val = st.columns([3, 1])
+            with col_item:
+                st.markdown(f"%EF%B8%8F **{meal['name']}**")
+                st.caption(f"Cuisine: {meal['cuisine']} | Serving Size: {meal['portion']} | Prep: {meal['oil_level']}")
+            with col_val:
+                st.markdown(f"**`+{meal['calories']} kcal`**")
+            st.write("---")
