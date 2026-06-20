@@ -13,7 +13,9 @@ if not SUPABASE_URL or not SUPABASE_KEY:
     raise ValueError("Missing Supabase credentials! Add them to your local .env file or your Cloud Secrets dashboard settings.")
 
 SUPABASE_URL = SUPABASE_URL.strip().strip('"').strip("'")
+st.caption(f"Debug: key length={len(SUPABASE_KEY)}, starts={SUPABASE_KEY[:8]}, ends={SUPABASE_KEY[-8:]}")
 SUPABASE_KEY = SUPABASE_KEY.strip().strip('"').strip("'")
+st.caption(f"Debug: key length={len(SUPABASE_KEY)}, starts={SUPABASE_KEY[:8]}, ends={SUPABASE_KEY[-8:]}")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
